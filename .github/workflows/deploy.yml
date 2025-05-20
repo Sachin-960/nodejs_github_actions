@@ -1,0 +1,59 @@
+name: Deploy Node.js App to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd terraform
+          terraform init
+          terraform apply -auto-approve \
+            -var "access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var "key_name=${{ secrets.KEY_NAME }}"
+          
+          echo "INSTANCE_IP=$(terraform output -raw public_ip)" >> $GITHUB_ENV
+
+      - name: Wait for SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.INSTANCE_IP }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: echo "SSH is reachable"
+
+      - name: Generate Ansible Inventory
+        run: |
+          cd ansible
+          cp ../ansible/inventory.ini.template inventory.ini
+          sed -i "s/<INSTANCE_IP>/${{ env.INSTANCE_IP }}/g" inventory.ini
+          echo "[defaults]" > ansible.cfg
+          echo "host_key_checking = False" >> ansible.cfg
+
+      - name: Install Ansible
+        run: sudo apt install -y ansible
+
+      - name: Set up SSH Agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Run Ansible Playbook
+        run: |
+          cd ansible
+          ansible-playbook -i inventory.ini node_service.yml

@@ -1,0 +1,28 @@
+---
+- name: Install git
+  yum:
+    name: git
+    state: present
+
+- name: Clone repository
+  git:
+    repo: "https://github.com/Sachin-960/nodejs_github_actions"
+    dest: /home/ec2-user/myapp
+    version: main
+
+- name: Install Node.js
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh  | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 18
+
+- name: Install dependencies
+  shell: |
+    cd /home/ec2-user/myapp
+    npm install
+
+- name: Start application
+  shell: |
+    cd /home/ec2-user/myapp
+    nohup node index.js > app.log 2>&1 &
