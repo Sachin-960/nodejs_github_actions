@@ -27,26 +27,34 @@ jobs:
             -var "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var "key_name=${{ secrets.KEY_NAME }}"
           
-          echo "INSTANCE_IP=$(terraform output -raw public_ip)" >> $GITHUB_ENV
+          # Capture public IP cleanly
+          INSTANCE_IP=$(terraform output -raw public_ip)
+          echo "INSTANCE_IP=$INSTANCE_IP" >> $GITHUB_ENV
 
-      - name: Wait for SSH
+      - name: Wait for SSH (with retry)
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.INSTANCE_IP }}
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 5m
+          command_timeout: 1m
           script: echo "SSH is reachable"
 
       - name: Generate Ansible Inventory
         run: |
           cd ansible
-          cp ../ansible/inventory.ini.template inventory.ini
+          cp inventory.ini.template inventory.ini
           sed -i "s/<INSTANCE_IP>/${{ env.INSTANCE_IP }}/g" inventory.ini
           echo "[defaults]" > ansible.cfg
           echo "host_key_checking = False" >> ansible.cfg
 
       - name: Install Ansible
-        run: sudo apt install -y ansible
+        run: |
+          sudo apt update
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository --yes --update ppa:ansible/ansible
+          sudo apt install -y ansible
 
       - name: Set up SSH Agent
         uses: webfactory/ssh-agent@v0.5.4
