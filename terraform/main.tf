@@ -1,11 +1,23 @@
-provider "aws" {
-  region     = "us-east-1"
-  access_key = "dummy"
-  secret_key = "dummy"
+variable "access_key" {
+  description = "AWS Access Key ID"
+  type        = string
+}
+
+variable "secret_key" {
+  description = "AWS Secret Access Key"
+  type        = string
 }
 
 variable "key_name" {
-  default = "mykey"
+  description = "SSH key name in AWS"
+  type        = string
+  default     = "mykey"
+}
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = var.access_key
+  secret_key = var.secret_key
 }
 
 resource "aws_instance" "node_server" {
