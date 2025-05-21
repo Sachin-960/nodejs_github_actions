@@ -1,3 +1,11 @@
+# Configure the AWS Provider
+provider "aws" {
+  region     = "us-east-1"
+  access_key = var.access_key
+  secret_key = var.secret_key
+}
+
+# Define required variables
 variable "access_key" {
   description = "AWS Access Key ID"
   type        = string
@@ -11,28 +19,17 @@ variable "secret_key" {
 variable "key_name" {
   description = "SSH key name in AWS"
   type        = string
-  default     = "mykey"
 }
 
-provider "aws" {
-  region     = "us-east-1"
-  access_key = var.access_key
-  secret_key = var.secret_key
+# Try to find an existing security group by name
+data "aws_security_group" "existing_sg" {
+  name = "allow_ssh_http"
 }
 
-resource "aws_instance" "node_server" {
-  ami           = "ami-0953476d60561c955" # Amazon Linux 2
-  instance_type = "t2.micro"
-  key_name      = var.key_name
+# Create the security group only if it doesn't exist
+resource "aws_security_group" "dynamic_sg" {
+  count = data.aws_security_group.existing_sg.id == "" ? 1 : 0
 
-  tags = {
-    Name = "NodeJSServer"
-  }
-
-  vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
-}
-
-resource "aws_security_group" "allow_ssh_http" {
   name        = "allow_ssh_http"
   description = "Allow SSH and HTTP inbound traffic"
 
@@ -58,6 +55,24 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 }
 
+# Use the existing SG ID or fall back to the newly created one
+locals {
+  sg_id = data.aws_security_group.existing_sg.id != "" ? data.aws_security_group.existing_sg.id : aws_security_group.dynamic_sg.id
+}
+
+# Launch EC2 Instance
+resource "aws_instance" "node_server" {
+  ami           = "ami-042e82873091e89f4" # Ubuntu 22.04 AMI in us-east-1
+  instance_type = "t2.micro"
+  key_name      = var.key_name
+  vpc_security_group_ids = [local.sg_id]
+
+  tags = {
+    Name = "NodeJSServer"
+  }
+}
+
+# Output Public IP
 output "public_ip" {
   value = aws_instance.node_server.public_ip
 }
