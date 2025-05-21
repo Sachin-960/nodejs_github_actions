@@ -57,7 +57,8 @@ resource "aws_security_group" "dynamic_sg" {
 
 # Use the existing SG ID or fall back to the newly created one
 locals {
-  sg_id = data.aws_security_group.existing_sg.id != "" ? data.aws_security_group.existing_sg.id : aws_security_group.dynamic_sg.id
+  # Handle count-based access for dynamic_sg
+  sg_id = data.aws_security_group.existing_sg.id != "" ? data.aws_security_group.existing_sg.id : aws_security_group.dynamic_sg[0].id
 }
 
 # Launch EC2 Instance
