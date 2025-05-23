@@ -37,10 +37,10 @@
 
 - name: Install app dependencies
   shell: |
-    cd /home/ubuntu/myapp
+    cd /home/ubuntu/app
     npm install
 
 - name: Start application
   shell: |
-    cd /home/ubuntu/myapp
+    cd /home/ubuntu/app
     nohup npm start > app.log 2>&1 &
