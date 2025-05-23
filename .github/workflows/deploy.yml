@@ -26,9 +26,9 @@ jobs:
             -var "access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -var "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var "key_name=${{ secrets.KEY_NAME }}"
-          
-          # Capture public IP cleanly
-          INSTANCE_IP=$(terraform output -raw public_ip)
+
+          # Extract only the public IP cleanly
+          INSTANCE_IP=$(terraform output -raw public_ip | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n 1)
           echo "INSTANCE_IP=$INSTANCE_IP" >> $GITHUB_ENV
 
       - name: Wait for SSH (with retry)

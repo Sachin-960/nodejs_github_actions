@@ -63,7 +63,7 @@ locals {
 
 # Launch EC2 Instance
 resource "aws_instance" "node_server" {
-  ami           = "ami-0953476d60561c955" # Ubuntu 22.04 AMI in us-east-1
+  ami           = "ami-084568db4383264d4" # Ubuntu 22.04 AMI in us-east-1
   instance_type = "t2.micro"
   key_name      = var.key_name
   vpc_security_group_ids = [local.sg_id]
