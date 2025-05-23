@@ -35,7 +35,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.INSTANCE_IP }}
-          username: ec2-user
+          username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           timeout: 5m
           command_timeout: 1m
