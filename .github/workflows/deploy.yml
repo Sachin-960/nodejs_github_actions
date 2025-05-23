@@ -32,7 +32,7 @@ jobs:
           echo "INSTANCE_IP=$INSTANCE_IP" >> $GITHUB_ENV
 
       - name: Wait for Instance Boot (4 minutes)
-        run: sleep 240
+        run: sleep 180
 
       - name: Wait for SSH (with retry)
         uses: appleboy/ssh-action@master
@@ -64,8 +64,8 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Fix SSH Key Permissions
-        run: chmod 600 ~/.ssh/id_rsa
+ #     - name: Fix SSH Key Permissions
+ #       run: chmod 600 ~/.ssh/id_rsa
 
       - name: Run Ansible Playbook
         run: |
