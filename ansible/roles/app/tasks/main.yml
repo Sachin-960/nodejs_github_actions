@@ -7,7 +7,7 @@
 - name: Clone repository
   git:
     repo: "https://github.com/Sachin-960/nodejs_github_actions"
-    dest: /home/ec2-user/myapp
+    dest: /home/ubuntu/myapp
     version: main
 
 - name: Install Node.js
@@ -19,10 +19,10 @@
 
 - name: Install dependencies
   shell: |
-    cd /home/ec2-user/myapp
+    cd /home/ubuntu/myapp
     npm install
 
 - name: Start application
   shell: |
-    cd /home/ec2-user/myapp
+    cd /home/ubuntu/myapp
     nohup node index.js > app.log 2>&1 &
