@@ -64,10 +64,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
- #     - name: Fix SSH Key Permissions
- #       run: chmod 600 ~/.ssh/id_rsa
-
       - name: Run Ansible Playbook
         run: |
           cd ansible
           ansible-playbook -i inventory.ini node_service.yml
+
+      - name: Show Deployment URL
+        run: |
+          echo "✅ App deployed successfully!"
+          echo "🌐 Access your app at: http://${{ env.INSTANCE_IP }}"
