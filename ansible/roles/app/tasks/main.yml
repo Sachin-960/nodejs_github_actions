@@ -11,19 +11,26 @@
     dest: /home/ubuntu/myapp
     version: main
 
+- name: Remove old Node.js if exists (to avoid conflicts)
+  apt:
+    name: ["nodejs", "npm"]
+    state: absent
+    purge: yes
+
+- name: Clean up any broken dependencies
+  shell: sudo apt --fix-broken install -y
+
 - name: Add NodeSource APT repository
   shell: |
     curl -fsSL https://deb.nodesource.com/setup_18.x  | sudo -E bash -
 
-- name: Install Node.js and npm
+- name: Install Node.js (includes npm)
   apt:
-    name:
-      - nodejs
-      - npm
+    name: nodejs
     state: present
     update_cache: yes
 
-- name: Verify Node and npm versions
+- name: Verify versions
   shell: |
     node -v
     npm -v
